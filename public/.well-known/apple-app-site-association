@@ -1,7 +1,12 @@
 {
   "applinks": {
     "apps": [],
-    "details": []
+    "details": [
+      {
+        "appID": "3MWP4W4XQV.com.aisa24.login",
+        "paths": ["/*"]
+      }
+    ]
   },
   "webcredentials": {
     "apps": [
