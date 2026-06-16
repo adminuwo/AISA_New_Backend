@@ -51,6 +51,8 @@ import legalToolkitRoutes from './Tools/AI_Legal/legalToolkit.routes.js';
 import connectorsRoutes from './routes/connectors.routes.js';
 import precedentsRoutes from './Tools/AI_Legal/routes/precedents.routes.js';
 import friendChatRoutes from './routes/friendChatRoutes.js';
+import chatsRoutes from './routes/chats.js';
+import messagesRoutes from './routes/messages.js';
 
 import { startPlanExpiryService } from './services/planExpiryService.js';
 
@@ -58,14 +60,6 @@ import { startPlanExpiryService } from './services/planExpiryService.js';
 
 const app = express();
 const PORT = process.env.PORT || 8080;
-
-// Log requests to .well-known for debugging AASA and Apple verification
-app.use('/.well-known', (req, res, next) => {
-  try {
-    console.log(`[AASA REQUEST] ${req.method} ${req.originalUrl} - Headers:`, { host: req.headers.host, ct: req.headers['content-type'] });
-  } catch (e) {}
-  next();
-});
 
 
 
@@ -123,32 +117,6 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 // app.use(fileUpload()); // Removed to avoid conflict with Multer (New AIBASE)
 
 
-// ─── Apple verification endpoints (serve before static files to avoid send/serve-static conflicts)
-const serveAppleVerificationHandler = (req, res) => {
-  try {
-    // Delegate to the existing serveAppleVerification logic by calling its function body here
-    let filePath = path.join(__dirname, 'public', '.well-known', 'apple-developer-merchantid-domain-association');
-    if (!fs.existsSync(filePath)) {
-      filePath = path.join(__dirname, 'public', '.well-known', 'apple-developer-merchantid-domain-association.txt');
-    }
-
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).send('Apple Pay domain verification file not found. Please add it to public/.well-known/');
-    }
-
-    const buffer = fs.readFileSync(filePath);
-    res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Content-Length', buffer.length);
-    return res.end(buffer);
-  } catch (e) {
-    console.error('[SERVER ERROR] serveAppleVerificationHandler failed:', e && e.message);
-    return res.status(500).send('Internal server error while serving verification file');
-  }
-};
-
-app.get('/.well-known/apple-developer-merchantid-domain-association.txt', serveAppleVerificationHandler);
-app.get('/.well-known/apple-developer-merchantid-domain-association', serveAppleVerificationHandler);
-
 // Serve static frontend files from 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -161,47 +129,18 @@ const serveAppleVerification = (req, res) => {
   if (!fs.existsSync(filePath)) {
     filePath = path.join(__dirname, 'public', '.well-known', 'apple-developer-merchantid-domain-association.txt');
   }
-
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).send('Apple Pay domain verification file not found. Please add it to public/.well-known/');
-  }
-
-  // Apple Pay verification file is a binary DER PKCS#7 signature - read and stream manually
-  res.setHeader('Content-Type', 'application/octet-stream');
-  try {
-    const buffer = fs.readFileSync(filePath);
-    res.setHeader('Content-Length', buffer.length);
-    return res.end(buffer);
-  } catch (e) {
-    console.error('[SERVER ERROR] Failed to read Apple verification file:', e && e.message);
-    return res.status(500).send('Internal server error while serving verification file');
+  
+  if (fs.existsSync(filePath)) {
+    // Apple Pay verification file is a binary DER PKCS#7 signature
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.sendFile(filePath);
+  } else {
+    res.status(404).send('Apple Pay domain verification file not found. Please add it to public/.well-known/');
   }
 };
 
-// Old handlers replaced by serveAppleVerificationHandler above
-app.get('/.well-known/apple-developer-merchantid-domain-association.txt', (req, res) => res.status(204).end());
-app.get('/.well-known/apple-developer-merchantid-domain-association', (req, res) => res.status(204).end());
-
-// ─── Apple App Site Association (Sign In with Apple & WebCredentials) ────────
-app.get('/.well-known/apple-app-site-association', (req, res) => {
-  const filePath = path.join(__dirname, 'public', '.well-known', 'apple-app-site-association');
-  if (fs.existsSync(filePath)) {
-    try {
-      const json = fs.readFileSync(filePath, 'utf8');
-      res.setHeader('Content-Type', 'application/json');
-      return res.send(json);
-    } catch (e) {
-      console.error('[SERVER ERROR] Failed to read apple-app-site-association:', e && e.message);
-      return res.status(500).send('Internal server error while serving apple-app-site-association');
-    }
-  } else {
-    // Return minimal valid JSON if file not found
-    res.json({
-      applinks: { apps: [], details: [] },
-      webcredentials: { apps: ["3MWP4W4XQV.com.aisa24.login"] }
-    });
-  }
-});
+app.get('/.well-known/apple-developer-merchantid-domain-association.txt', serveAppleVerification);
+app.get('/.well-known/apple-developer-merchantid-domain-association', serveAppleVerification);
 
 
 // API Health Check (moved from root)
@@ -264,6 +203,10 @@ app.use('/api/social-agent-review', socialReviewRoutes);
 app.use('/api/media', mediaProxyRoutes);
 app.use('/api/brand', brandRoutes);
 app.use('/api/friends', friendChatRoutes);
+app.use('/api/chats', chatsRoutes);
+app.use('/api/messages', messagesRoutes);
+app.use('/api/users', userRoute); // Aliased users routes to same user controller
+
 
 
 // Admin Panel (Admin only)
