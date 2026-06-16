@@ -358,9 +358,15 @@ route.get("/all", verifyToken, async (req, res) => {
             return res.status(500).json({ error: "Database not connected. Cannot fetch all users." });
         }
 
-        const users = await userModel.find({ role: 'user' })
+        // Fetch ALL users except admins (role !== 'admin')
+        // Also include users where role is not set (undefined/null) - they are regular users
+        const users = await userModel.find({ 
+            role: { $ne: 'admin' },
+            email: { $ne: 'admin@uwo24.com' } // exclude primary admin
+        })
             .populate('agents', 'agentName pricing')
-            .select('-password');
+            .select('-password')
+            .sort({ createdAt: -1 }); // newest users first
 
         const spendMap = {};
 
