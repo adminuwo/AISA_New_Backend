@@ -387,25 +387,30 @@ route.get("/all", verifyToken, async (req, res) => {
         }
 
         // Fetch ALL users except admins (role !== 'admin')
-        // Also include users where role is not set (undefined/null) - they are regular users
         const users = await userModel.find({ 
             role: { $ne: 'admin' },
             email: { $ne: 'admin@uwo24.com' } // exclude primary admin
         })
-            .populate('agents', 'agentName pricing')
             .select('-password')
             .sort({ createdAt: -1 }); // newest users first
 
         const spendMap = {};
 
-        const subscriptions = await Subscription.find({}).populate('planId');
-        const subMap = subscriptions.reduce((acc, sub) => {
-            acc[sub.userId.toString()] = sub.planId?.planName || 'Free Plan';
-            return acc;
-        }, {});
+        // Safely fetch subscription plan info (may fail if Plan model not loaded)
+        let subMap = {};
+        try {
+            const subscriptions = await Subscription.find({}).populate('planId');
+            subMap = subscriptions.reduce((acc, sub) => {
+                acc[sub.userId.toString()] = sub.planId?.planName || 'Free Plan';
+                return acc;
+            }, {});
+        } catch (subErr) {
+            console.warn('[FETCH ALL USERS] Could not load subscription plans:', subErr.message);
+        }
 
         const usersWithDetails = users.map(user => ({
             id: user._id,
+            _id: user._id,
             name: user.name,
             email: user.email,
             avatar: user.avatar,
