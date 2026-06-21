@@ -23,7 +23,7 @@ import { generateFollowUpPrompts } from "../utils/imagePromptController.js";
 import { executeImagePipeline, executeVideoPipeline } from "../services/generationPipeline.js";
 import { selectVideoModel } from "../services/modelSelector.js";
 import { getMemoryContext, extractUserMemory, updateMemory } from "../utils/memoryService.js";
-import { subscriptionService, checkPremiumAccess } from '../services/subscriptionService.js';
+import { subscriptionService, checkPremiumAccess, checkQuota, incrementQuota } from '../services/subscriptionService.js';
 import { retrieveContextFromRag, detectRAGNeed } from "../services/vertex.service.js";
 import * as configService from "../services/configService.js";
 import Knowledge from "../models/Knowledge.model.js";
@@ -96,9 +96,22 @@ router.post("/", optionalVerifyToken, identifyGuest, async (req, res) => {
         console.log(`[Admin-Bypass] Granting immediate access to admin@uwo24.com`);
       } else {
         try {
-          await subscriptionService.checkCredits(req.user.id || req.user._id, toolsRequested, req.body);
+          const quotaCheck = await checkQuota(req.user.id || req.user._id, 'chat');
+          if (!quotaCheck.allowed) {
+            return res.status(403).json({
+              success: false,
+              code: quotaCheck.code,
+              error: quotaCheck.reason,
+              message: quotaCheck.reason,
+              planKey: quotaCheck.planKey,
+              used: quotaCheck.used,
+              limit: quotaCheck.limit,
+              toolName: 'AISA Chat'
+            });
+          }
         } catch (subError) {
-          return res.status(403).json({ success: false, code: subError.message === "PREMIUM_RESTRICTED" ? "PREMIUM_ONLY" : "OUT_OF_CREDITS", message: subError.message });
+          console.error('[QuotaSystem] Check failed:', subError);
+          return res.status(403).json({ success: false, code: "QUOTA_EXCEEDED", message: subError.message });
         }
       }
     }
@@ -201,6 +214,22 @@ router.post("/", optionalVerifyToken, identifyGuest, async (req, res) => {
 
       if (data.action === 'generate_image' && data.prompt) {
         try {
+            if (req.user) {
+              const quotaCheck = await checkQuota(req.user.id || req.user._id, 'generate_image');
+              if (!quotaCheck.allowed) {
+                return res.status(403).json({
+                  success: false,
+                  code: quotaCheck.code,
+                  error: quotaCheck.reason,
+                  message: quotaCheck.reason,
+                  planKey: quotaCheck.planKey,
+                  used: quotaCheck.used,
+                  limit: quotaCheck.limit,
+                  toolName: 'Image Generation'
+                });
+              }
+            }
+
             const pipelineResult = await executeImagePipeline(
                 data.prompt,
                 async (finalPrompt, activeModel) => {
@@ -216,6 +245,12 @@ router.post("/", optionalVerifyToken, identifyGuest, async (req, res) => {
                 // 🧠 Generate Smart Prompts for the Image
                 const followUpPrompts = await generateFollowUpPrompts(data.prompt, pipelineResult.url).catch(() => []);
                 finalResponse.suggestions = followUpPrompts;
+
+                if (req.user) {
+                  await incrementQuota(req.user.id || req.user._id, 'generate_image').catch(e =>
+                    console.error(`[QuotaSystem] Image increment failed:`, e.message)
+                  );
+                }
             }
         } catch (pipeErr) {
             console.error("[MediaGen] generate_image pipeline error:", pipeErr);
@@ -224,6 +259,20 @@ router.post("/", optionalVerifyToken, identifyGuest, async (req, res) => {
         let sourceImage = (Array.isArray(image) && image.length > 0) ? image[0] : (image || null);
         if (sourceImage) {
           try {
+            if (req.user) {
+              const quotaCheck = await checkQuota(req.user.id || req.user._id, 'edit_image');
+              if (!quotaCheck.allowed) {
+                return res.status(403).json({
+                  success: false,
+                  code: quotaCheck.code,
+                  error: quotaCheck.reason,
+                  message: quotaCheck.reason,
+                  planKey: quotaCheck.planKey,
+                  toolName: 'Image Editing'
+                });
+              }
+            }
+
             const pipelineResult = await executeImagePipeline(
                 data.prompt,
                 async (finalPrompt, activeModel) => {
@@ -246,6 +295,22 @@ router.post("/", optionalVerifyToken, identifyGuest, async (req, res) => {
         }
       } else if (data.action === 'generate_video' && data.prompt) {
         try {
+          if (req.user) {
+            const quotaCheck = await checkQuota(req.user.id || req.user._id, 'generate_video');
+            if (!quotaCheck.allowed) {
+              return res.status(403).json({
+                success: false,
+                code: quotaCheck.code,
+                error: quotaCheck.reason,
+                message: quotaCheck.reason,
+                planKey: quotaCheck.planKey,
+                used: quotaCheck.used,
+                limit: quotaCheck.limit,
+                toolName: 'Video Generation'
+              });
+            }
+          }
+
           const resolvedVideoModel = selectVideoModel(reqModelId, 'fast', req.user?.isPremium || false);
           const pipelineResult = await executeVideoPipeline(
             data.prompt,
@@ -257,6 +322,12 @@ router.post("/", optionalVerifyToken, identifyGuest, async (req, res) => {
           if (pipelineResult?.url) {
             finalResponse.videoUrl = pipelineResult.url;
             finalResponse.reply = reply;
+
+            if (req.user) {
+              await incrementQuota(req.user.id || req.user._id, 'generate_video').catch(e =>
+                console.error(`[QuotaSystem] Video increment failed:`, e.message)
+              );
+            }
           }
         } catch (videoErr) {
           console.error('[MediaGen] generate_video pipeline error:', videoErr);
@@ -373,7 +444,9 @@ router.post("/", optionalVerifyToken, identifyGuest, async (req, res) => {
 
     const finalUserId = req.user?.id || req.user?._id;
     if (finalUserId) {
-        await subscriptionService.deductCredits(finalUserId, toolsRequested, sessionId, req.body);
+        await incrementQuota(finalUserId, 'chat').catch(e =>
+            console.error(`[QuotaSystem] Chat increment failed for ${finalUserId}: ${e.message}`)
+        );
     }
 
     return res.status(200).json(finalResponse);
