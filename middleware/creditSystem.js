@@ -17,7 +17,31 @@ const getQuotaAction = (url, body = {}) => {
     // CashFlow stock tabs
     if (u.includes('/api/stock/'))          return 'cashflow';
 
+    if (u.includes('/api/legal') || u.includes('/api/legal-toolkit') || u.includes('/api/precedents')) {
+        return 'ai_legal';
+    }
+
+    if (u.includes('/api/ai-ad') || u.includes('/api/social-agent') || u.includes('/api/social-agent-review') || u.includes('/api/brand')) {
+        return 'ai_ads';
+    }
+
+    if (u.includes('/api/voice')) {
+        return 'voice_gen';
+    }
+
     if (u.includes('/api/chat') || u.includes('/api/aibase/chat') || u.includes('/api/chat/realtime')) {
+        let mode = body?.mode;
+        if (mode === 'webSearch') mode = 'web_search';
+        if (mode === 'deepSearch') mode = 'DEEP_SEARCH';
+        if (mode === 'codeWriter') mode = 'CODE_WRITER';
+        if (mode === 'aiLegal') mode = 'LEGAL_TOOLKIT';
+
+        if (mode === 'DEEP_SEARCH' || mode === 'web_search') {
+            return mode;
+        }
+        if (mode === 'CODE_WRITER' || mode === 'CODING_HELP') {
+            return 'code_writer';
+        }
         return 'chat';
     }
 
@@ -39,6 +63,15 @@ const getActionLabel = (url, body) => {
         return body?.postFormat === 'carousel'
             ? { action: 'generate_carousel', description: 'AI Ads Agent (Carousel)' }
             : { action: 'generate_image', description: 'AI Ads Agent (Visual Post)' };
+    }
+    if (url.includes('/api/legal') || url.includes('/api/legal-toolkit') || url.includes('/api/precedents')) {
+        return { action: 'ai_legal', description: 'AI Legal™ Advisor' };
+    }
+    if (url.includes('/api/ai-ad') || url.includes('/api/social-agent') || url.includes('/api/social-agent-review') || url.includes('/api/brand')) {
+        return { action: 'ai_ads', description: 'AI Ads™ Agent' };
+    }
+    if (url.includes('/api/voice')) {
+        return { action: 'voice_gen', description: 'Voice Generation' };
     }
     return { action: 'other', description: 'AISA Feature' };
 };

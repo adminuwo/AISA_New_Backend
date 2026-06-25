@@ -55,6 +55,8 @@ import chatsRoutes from './routes/chats.js';
 import messagesRoutes from './routes/messages.js';
 
 import { startPlanExpiryService } from './services/planExpiryService.js';
+import { verifyToken } from './middleware/authorization.js';
+import { creditMiddleware } from './middleware/creditSystem.js';
 
 // End of standard imports
 
@@ -166,10 +168,10 @@ app.use('/api/auth/sso', ssoRoutes);
 app.use('/api/user', userRoute);
 app.use('/api/user', dataRoutes);  // GDPR data deletion & export
 app.use('/api/legal', legalRoutes);
-app.use('/api/legal-toolkit', legalToolkitRoutes);
+app.use('/api/legal-toolkit', verifyToken, creditMiddleware, legalToolkitRoutes);
 
 // Intelligence Features
-app.use('/api/precedents', precedentsRoutes);
+app.use('/api/precedents', verifyToken, creditMiddleware, precedentsRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/agents', agentRoutes);
 app.use('/api/voice', voiceRoutes);
@@ -197,9 +199,9 @@ app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/payment', paymentRoutes);
 
 app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/ai-ad', aiAdAgentRoutes);
+app.use('/api/ai-ad', verifyToken, creditMiddleware, aiAdAgentRoutes);
 app.use('/api/social-agent', socialAgentRoutes);
-app.use('/api/social-agent-review', socialReviewRoutes);
+app.use('/api/social-agent-review', verifyToken, creditMiddleware, socialReviewRoutes);
 app.use('/api/media', mediaProxyRoutes);
 app.use('/api/brand', brandRoutes);
 app.use('/api/friends', friendChatRoutes);
@@ -222,9 +224,6 @@ app.use('/api/public', chatRoutes); // Allow /api/public/share/...
 
 
 // AIBASE (V3) - With Credit System
-const { verifyToken } = await import('./middleware/authorization.js');
-const { creditMiddleware } = await import('./middleware/creditSystem.js');
-
 app.use('/api/aibase/chat', verifyToken, creditMiddleware, chatRoute);
 app.use('/api/aibase/knowledge', verifyToken, creditMiddleware, knowledgeRoute);
 

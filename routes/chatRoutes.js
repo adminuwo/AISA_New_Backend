@@ -69,7 +69,13 @@ const checkGuestLimits = async (req, sessionId) => {
 
 // --- CORE CHAT ENDPOINT ---
 router.post("/", optionalVerifyToken, identifyGuest, async (req, res) => {
-  const { content, history, systemInstruction, image, video, document, language, model, mode, sessionId, userMsgId, aiMsgId, aspectRatio, modelId: reqModelId, skipSession } = req.body;
+  let { content, history, systemInstruction, image, video, document, language, model, mode, sessionId, userMsgId, aiMsgId, aspectRatio, modelId: reqModelId, skipSession } = req.body;
+
+  // Normalize mobile-specific tool modes to backend formats
+  if (mode === "webSearch") mode = "web_search";
+  if (mode === "deepSearch") mode = "DEEP_SEARCH";
+  if (mode === "codeWriter") mode = "CODE_WRITER";
+  if (mode === "aiLegal") mode = "LEGAL_TOOLKIT";
 
   try {
     // 1. LIMIT & CREDIT CHECKS
@@ -96,18 +102,28 @@ router.post("/", optionalVerifyToken, identifyGuest, async (req, res) => {
         console.log(`[Admin-Bypass] Granting immediate access to admin@uwo24.com`);
       } else {
         try {
-          const quotaCheck = await checkQuota(req.user.id || req.user._id, 'chat');
-          if (!quotaCheck.allowed) {
-            return res.status(403).json({
-              success: false,
-              code: quotaCheck.code,
-              error: quotaCheck.reason,
-              message: quotaCheck.reason,
-              planKey: quotaCheck.planKey,
-              used: quotaCheck.used,
-              limit: quotaCheck.limit,
-              toolName: 'AISA Chat'
-            });
+          for (const tool of toolsRequested) {
+            const quotaCheck = await checkQuota(req.user.id || req.user._id, tool);
+            if (!quotaCheck.allowed) {
+              const displayNames = {
+                'chat': 'AISA Chat',
+                'web_search': 'Web Search',
+                'deep_search': 'Deep Search',
+                'DEEP_SEARCH': 'Deep Search',
+                'code_writer': 'Code Writer',
+                'legal_toolkit': 'AI Legal™ Advisor'
+              };
+              return res.status(403).json({
+                success: false,
+                code: quotaCheck.code,
+                error: quotaCheck.reason,
+                message: quotaCheck.reason,
+                planKey: quotaCheck.planKey,
+                used: quotaCheck.used,
+                limit: quotaCheck.limit,
+                toolName: displayNames[tool] || tool
+              });
+            }
           }
         } catch (subError) {
           console.error('[QuotaSystem] Check failed:', subError);

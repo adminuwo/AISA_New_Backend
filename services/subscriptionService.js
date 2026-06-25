@@ -279,8 +279,81 @@ export const checkQuota = async (userId, action) => {
             return { allowed: true, planKey: plan.planKey };
         }
 
+        case 'ai_legal': {
+            if (plan.planKey === 'Plan_0') {
+                return {
+                    allowed: false,
+                    code: 'PLAN_RESTRICTED',
+                    reason: 'AI Legal™ Advisor is not available on the Free plan. Upgrade to Creator (₹499/mo) or higher to access.',
+                    planKey: plan.planKey
+                };
+            }
+            return { allowed: true, planKey: plan.planKey };
+        }
+
+        case 'ai_ads': {
+            if (plan.planKey === 'Plan_0' || plan.planKey === 'Plan_1') {
+                return {
+                    allowed: false,
+                    code: 'PLAN_RESTRICTED',
+                    reason: 'AI Ads™ Agent is not available on your current plan. Upgrade to Startup (₹999/mo) or higher to access.',
+                    planKey: plan.planKey
+                };
+            }
+            return { allowed: true, planKey: plan.planKey };
+        }
+
+        case 'voice_gen': {
+            if (plan.planKey === 'Plan_0') {
+                return {
+                    allowed: false,
+                    code: 'PLAN_RESTRICTED',
+                    reason: 'Voice generation is not available on the Free plan. Upgrade to Creator (₹499/mo) or higher to access.',
+                    planKey: plan.planKey
+                };
+            }
+            return { allowed: true, planKey: plan.planKey };
+        }
+
+        case 'web_search': {
+            if (plan.planKey === 'Plan_0') {
+                return {
+                    allowed: false,
+                    code: 'PLAN_RESTRICTED',
+                    reason: 'Web Search is not available on the Free plan. Upgrade to Creator (₹499/mo) or higher to access.',
+                    planKey: plan.planKey
+                };
+            }
+            return { allowed: true, planKey: plan.planKey };
+        }
+
+        case 'deep_search':
+        case 'DEEP_SEARCH': {
+            if (plan.planKey === 'Plan_0') {
+                return {
+                    allowed: false,
+                    code: 'PLAN_RESTRICTED',
+                    reason: 'Deep Search is not available on the Free plan. Upgrade to Creator (₹499/mo) or higher to access.',
+                    planKey: plan.planKey
+                };
+            }
+            return { allowed: true, planKey: plan.planKey };
+        }
+
+        case 'code_writer': {
+            if (plan.planKey === 'Plan_0') {
+                return {
+                    allowed: false,
+                    code: 'PLAN_RESTRICTED',
+                    reason: 'Code Writer is not available on the Free plan. Upgrade to Creator (₹499/mo) or higher to access.',
+                    planKey: plan.planKey
+                };
+            }
+            return { allowed: true, planKey: plan.planKey };
+        }
+
         default:
-            // All other actions (web search, code writer, legal, etc.) are allowed on all plans
+            // All other actions are allowed on all plans
             return { allowed: true, planKey: plan.planKey };
     }
 };
