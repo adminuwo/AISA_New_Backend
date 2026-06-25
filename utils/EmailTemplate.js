@@ -141,29 +141,30 @@ export const Welcome_Email_Template = `
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
+            background-color: #f4f4f5;
+            color: #1f2937;
             line-height: 1.6;
         }
         .container {
             max-width: 600px;
             margin: 30px auto;
             background: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
             overflow: hidden;
-            border: 1px solid #ddd;
+            border: 1px solid #e5e7eb;
         }
         .header {
-            background-color: #007BFF;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
             color: white;
-            padding: 30px 20px;
+            padding: 40px 20px;
             text-align: center;
         }
         .header h1 {
             margin: 0;
             font-size: 28px;
-            font-weight: bold;
+            font-weight: 800;
+            letter-spacing: -0.025em;
         }
         .header p {
             margin: 10px 0 0;
@@ -171,166 +172,216 @@ export const Welcome_Email_Template = `
             opacity: 0.9;
         }
         .content {
-            padding: 30px 25px;
+            padding: 40px 30px;
         }
         .welcome-message {
             font-size: 18px;
+            font-weight: 600;
             margin: 0 0 20px;
-            color: #333;
+            color: #111827;
         }
         .intro-text {
             font-size: 15px;
-            color: #555;
+            color: #4b5563;
             margin-bottom: 25px;
-            line-height: 1.7;
         }
-        .features-section {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 25px 0;
+        .section-divider {
+            border: 0;
+            border-top: 1px solid #e5e7eb;
+            margin: 30px 0;
         }
         .features-title {
-            font-size: 17px;
-            font-weight: bold;
-            color: #007BFF;
-            margin: 0 0 15px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #111827;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 20px;
         }
-        .features-list {
-            margin: 0;
-            padding: 0 0 0 20px;
+        .feature-item {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
         }
-        .features-list li {
-            margin: 12px 0;
+        .feature-icon {
+            font-size: 20px;
+            margin-right: 12px;
+            line-height: 1;
+        }
+        .feature-text {
+            font-size: 15px;
+        }
+        .feature-text strong {
+            color: #111827;
+        }
+        .feature-text p {
+            margin: 4px 0 0;
+            color: #4b5563;
             font-size: 14px;
-            color: #555;
-            line-height: 1.6;
         }
-        .agents-highlight {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
+        .steps-container {
+            background-color: #f9fafb;
             border-radius: 8px;
-            margin: 25px 0;
-            text-align: center;
+            padding: 24px;
+            border: 1px solid #f3f4f6;
         }
-        .agents-highlight h3 {
-            margin: 0 0 10px;
-            font-size: 18px;
+        .step-item {
+            margin-bottom: 12px;
+            font-size: 15px;
+            color: #374151;
         }
-        .agents-highlight p {
-            margin: 0;
-            font-size: 14px;
-            opacity: 0.95;
+        .step-item:last-child {
+            margin-bottom: 0;
         }
         .button {
             display: inline-block;
-            padding: 14px 30px;
-            margin: 25px 0;
-            background-color: #007BFF;
-            color: white;
+            padding: 14px 32px;
+            background-color: #2563eb;
+            color: white !important;
             text-decoration: none;
-            border-radius: 6px;
+            border-radius: 8px;
             text-align: center;
             font-size: 16px;
             font-weight: 600;
-            transition: background-color 0.3s;
+            margin: 30px 0;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
         }
-        .button:hover {
-            background-color: #0056b3;
-        }
-        .support-section {
-            margin-top: 25px;
-            padding: 15px;
-            background-color: #e7f3ff;
-            border-left: 4px solid #007BFF;
-            border-radius: 4px;
+        .quote-box {
+            background-color: #f3f4f6;
+            border-left: 4px solid #9ca3af;
+            padding: 16px 20px;
+            font-style: italic;
             font-size: 14px;
-            color: #555;
+            color: #4b5563;
+            margin: 25px 0;
+            border-radius: 0 8px 8px 0;
         }
         .footer {
-            background-color: #f4f4f4;
-            padding: 20px;
+            background-color: #f9fafb;
+            padding: 30px 20px;
             text-align: center;
-            color: #777;
+            color: #6b7280;
             font-size: 12px;
-            border-top: 1px solid #ddd;
+            border-top: 1px solid #e5e7eb;
         }
         .footer p {
-            margin: 5px 0;
+            margin: 6px 0;
         }
         .footer a {
-            color: #007BFF;
+            color: #2563eb;
             text-decoration: none;
-        }
-        p {
-            margin: 0 0 15px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎉 Welcome to AISA™!</h1>
-            <p>Your Gateway to Intelligent AI Agents</p>
+            <h1>🎉 Welcome to AISA™</h1>
+            <p>India's AI Super Assistant for Work, Business & Life</p>
         </div>
         <div class="content">
             <p class="welcome-message">Hello {name},</p>
             <p class="intro-text">
-                We're thrilled to welcome you to AISA™, your intelligent AI chat assistant! 
-                Your journey into the future of AI-powered solutions starts here. Whether you're looking to 
-                explore cutting-edge AI capabilities, AISA™ is here to help with 
-                everything you need.
+                You now have access to a growing ecosystem of AI-powered assistants designed to save time, improve productivity, and help you achieve more every day.
             </p>
 
-            <div class="agents-highlight">
-                <h3>🤖 Discover Our AI Agents</h3>
-                <p>
-                    Explore a diverse collection of specialized AI agents designed to solve real-world problems. 
-                    From customer service bots to data analysis assistants, creative content generators to 
-                    productivity enhancers – find the perfect AI agent for your needs.
-                </p>
+            <hr class="section-divider" />
+
+            <h3 class="features-title">🚀 Explore the AISA™ Ecosystem</h3>
+            
+            <div class="feature-item">
+                <span class="feature-icon">⚖️</span>
+                <div class="feature-text">
+                    <strong>AI Legal™</strong>
+                    <p>Draft Notices, Agreements, Affidavits, FIRs and legal documents.</p>
+                </div>
             </div>
 
-            <div class="features-section">
-                <p class="features-title">🚀 Here's how to get started:</p>
-                <ul class="features-list">
-                    <li><strong>Try Image Generation:</strong> Generate stunning AI images from text descriptions with our image generation feature.</li>
-                    <li><strong>Use Deep Search:</strong> Perform intelligent web searches and get comprehensive analysis of results directly in the chat.</li>
-                    <li><strong>Try Before You Buy:</strong> Test drive AI agents with free trials to find the perfect match for your requirements.</li>
-                    <li><strong>Customize Your Experience:</strong> Configure agents to work exactly how you want them, with personalized settings and integrations.</li>
-                    <li><strong>Join the Community:</strong> Connect with other AI enthusiasts, share experiences, and stay updated on the latest AI innovations.</li>
-                    <li><strong>24/7 Support:</strong> Our dedicated support team is always here to help you get the most out of AISA™.</li>
-                </ul>
+            <div class="feature-item">
+                <span class="feature-icon">📊</span>
+                <div class="feature-text">
+                    <strong>AI Cashflow™</strong>
+                    <p>Plan cash flow, analyze finances and make smarter decisions.</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <span class="feature-icon">📢</span>
+                <div class="feature-text">
+                    <strong>AI Ads™</strong>
+                    <p>Generate marketing campaigns, ad copies and social media content.</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <span class="feature-icon">💬</span>
+                <div class="feature-text">
+                    <strong>AISA Connect™</strong>
+                    <p>Automate WhatsApp conversations and customer engagement.</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <span class="feature-icon">🛒</span>
+                <div class="feature-text">
+                    <strong>AI Mall™</strong>
+                    <p>Discover powerful AI tools from around the world.</p>
+                </div>
+            </div>
+
+            <hr class="section-divider" />
+
+            <h3 class="features-title">🎯 Start Here</h3>
+            <div class="steps-container">
+                <div class="step-item"><strong>Step 1 →</strong> Complete your profile</div>
+                <div class="step-item"><strong>Step 2 →</strong> Explore AI Legal™</div>
+                <div class="step-item"><strong>Step 3 →</strong> Start your first AI conversation</div>
+                <div class="step-item"><strong>Step 4 →</strong> Invite friends and earn bonus credits</div>
+            </div>
+
+            <hr class="section-divider" />
+
+            <h3 class="features-title">🎁 Early Access Benefits</h3>
+            <p class="intro-text" style="margin-bottom: 10px;">As an early AISA™ user, you'll receive:</p>
+            <div class="feature-item" style="margin-bottom: 10px;">
+                <span class="feature-icon">✨</span>
+                <div class="feature-text">Access to upcoming AI features</div>
+            </div>
+            <div class="feature-item" style="margin-bottom: 10px;">
+                <span class="feature-icon">✨</span>
+                <div class="feature-text">Premium tools and exclusive launch offers</div>
+            </div>
+            <div class="feature-item" style="margin-bottom: 10px;">
+                <span class="feature-icon">✨</span>
+                <div class="feature-text">Priority access to new products</div>
+            </div>
+
+            <hr class="section-divider" />
+
+            <div class="quote-box">
+                “AISA is not just an AI assistant. It is your personal AI operating system.”
             </div>
 
             <div style="text-align: center;">
-                <a href="{dashboardUrl}" class="button">Explore AI Agents Now</a>
+                <a href="{dashboardUrl}" class="button">🚀 Launch AISA</a>
             </div>
 
-            <div class="support-section">
-                <strong>💡 Pro Tip:</strong> Try image generation and deep search features with AISA™! 
-                Check out our trending section for the top-rated AI solutions loved by our community.
-            </div>
-
-            <p class="intro-text" style="margin-top: 25px;">
-                Thank you for choosing AISA™. We're committed to bringing you the most advanced and 
-                reliable AI agents to transform how you work, create, and innovate.
+            <p class="intro-text" style="text-align: center; margin-top: 30px; font-size: 14px;">
+                Need help? Our team is always here to support you.
             </p>
         </div>
         <div class="footer">
-            <p><strong>AISA™</strong> - Your Intelligent AI Chat Assistant</p>
-            <p>&copy; ${new Date().getFullYear()} AISA™. All rights reserved.</p>
-            <p>Need assistance? Reach out to us at <a href="mailto:support@aimall.com">support@aimall.com</a></p>
-            <p style="margin-top: 10px;">
-                <a href="{privacyUrl}">Privacy Policy</a> | 
-                <a href="{termsUrl}">Terms of Service</a>
+            <p><strong>UWO™</strong> - Building Intelligent Systems for Humanity</p>
+            <p>&copy; 2026 UWO™. All rights reserved.</p>
+            <p>
+                <a href="https://aisa24.com">aisa24.com</a>
             </p>
         </div>
     </div>
 </body>
 </html>
 `;
+
 
 export const Reset_Password_OTP_Template = `
 <!DOCTYPE html>

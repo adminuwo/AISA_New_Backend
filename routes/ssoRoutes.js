@@ -17,6 +17,7 @@ import crypto from 'crypto';
 import UserModel from '../models/User.js';
 import generateTokenAndSetCookies from '../utils/generateTokenAndSetCookies.js';
 import { createSession } from '../utils/sessionHelper.js';
+import { welcomeEmail } from '../utils/Email.js';
 
 const router = express.Router();
 
@@ -121,6 +122,7 @@ router.post('/handoff', async (req, res) => {
         password: hashedPassword,
         isVerified: true,
       });
+      welcomeEmail(user.name, user.email).catch(err => console.error("SSO welcome email error:", err));
     } else {
       user.lastLogin = new Date();
       await user.save();

@@ -20,13 +20,18 @@ export const sendVerificationEmail = async (email, name, verificationCode) => {
 
 // WELCOME EMAIL
 export const welcomeEmail = async (name, email) => {
-  const info = await resend.emails.send({
-    from: `AISA <${process.env.EMAIL}>`,
-    to: [email],
-    subject: `Welcome ${name}`,
-    html: Welcome_Email_Template.replace("{name}", name).replace("{dashboardUrl}", dashboardUrl),
-  });
-
+  try {
+    const info = await resend.emails.send({
+      from: `AISA™ <${process.env.EMAIL}>`,
+      to: [email],
+      subject: `Welcome ${name}`,
+      html: Welcome_Email_Template.replace("{name}", name).replace("{dashboardUrl}", dashboardUrl),
+    });
+    console.log("Welcome email sent successfully:", info);
+    return info;
+  } catch (error) {
+    console.error("Error sending welcome email:", error);
+  }
 };
 
 export const sendResetPasswordEmail = async (email, name, resetUrl) => {

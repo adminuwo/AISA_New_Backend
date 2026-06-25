@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import UserModel from "../models/User.js";
 import generateTokenAndSetCookies from "../utils/generateTokenAndSetCookies.js";
 import { generateOTP } from "../utils/verifiacitonCode.js";
-import { sendVerificationEmail, sendResetPasswordEmail, sendPasswordChangeSuccessEmail, sendResetPasswordOTP } from "../utils/Email.js";
+import { sendVerificationEmail, sendResetPasswordEmail, sendPasswordChangeSuccessEmail, sendResetPasswordOTP, welcomeEmail } from "../utils/Email.js";
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
@@ -352,6 +352,9 @@ const handleSocialUser = async (profile, req, res, isRedirect = true) => {
         } catch (logErr) {
           console.error('Social Initial CreditLog failed:', logErr.message);
         }
+
+        // Send welcome email asynchronously
+        welcomeEmail(user.name, user.email).catch(err => console.error("Social welcome email error:", err));
       }
     }
 
