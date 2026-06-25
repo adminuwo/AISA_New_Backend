@@ -6,7 +6,6 @@ import { verifyToken } from "../middleware/authorization.js";
 
 const router = express.Router();
 
-// Get all available agents
 router.get("/", verifyToken, async (req, res) => {
     try {
         if (mongoose.connection.readyState !== 1) {
