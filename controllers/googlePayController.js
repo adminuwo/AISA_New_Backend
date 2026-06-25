@@ -133,12 +133,9 @@ export const verifyGooglePayment = async (req, res) => {
 
         // --- ENVIRONMENT DETECTION ---
         const isTestMode = 
-            !process.env.NODE_ENV || 
-            ['development', 'localhost', 'staging', 'sandbox', 'uat', 'test'].includes(process.env.NODE_ENV.toLowerCase()) ||
             (process.env.GOOGLE_PAY_ENV || 'TEST').toUpperCase() !== 'PRODUCTION' ||
-            req.hostname === 'localhost' ||
-            req.hostname === '127.0.0.1' ||
             (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_ID.startsWith('rzp_test'));
+
 
         if (isTestMode) {
             console.log(`[GooglePay] Test environment detected (Hostname: ${req.hostname}, NodeEnv: ${process.env.NODE_ENV}, GPayEnv: ${process.env.GOOGLE_PAY_ENV}). Bypassing plan/credit changes for user ${userId}.`);
