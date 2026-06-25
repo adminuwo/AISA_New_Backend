@@ -920,9 +920,9 @@ router.post("/apple", async (req, res) => {
     const clientId = process.env.APPLE_CLIENT_ID;
     const bundleId = process.env.APPLE_BUNDLE_ID;
     
-    // Verify ID Token with either Services ID (Web) or Bundle ID (Mobile)
+    // Verify ID Token with either Services ID (Web) or Bundle ID (Mobile) or Expo Go
     const verifiedToken = await appleSignin.verifyIdToken(identityToken, {
-      audience: [bundleId, clientId].filter(Boolean),
+      audience: [bundleId, clientId, 'host.exp.Exponent'].filter(Boolean),
       ignoreExpiration: false,
     });
 
