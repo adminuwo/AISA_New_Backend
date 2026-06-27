@@ -13,6 +13,11 @@ import {
     getAllPlansAdmin,
     parseLegalDoc
 } from '../controllers/adminController.js';
+import {
+    getChatSessionStats,
+    getChatSessions,
+    getChatSessionDetail
+} from '../controllers/adminChatSessionController.js';
 
 
 const router = express.Router();
@@ -66,5 +71,10 @@ router.post('/parse-legal-doc', verifyToken, isAdmin, upload.single('file'), (re
     console.log(`[Multer Debug] File received: ${req.file ? req.file.originalname : 'NONE'}`);
     next();
 }, parseLegalDoc);
+
+// Chat Session Tracking
+router.get('/chat-sessions/stats', verifyToken, isAdmin, getChatSessionStats);
+router.get('/chat-sessions', verifyToken, isAdmin, getChatSessions);
+router.get('/chat-sessions/:sessionId', verifyToken, isAdmin, getChatSessionDetail);
 
 export default router;
