@@ -24,19 +24,76 @@ const formatDuration = (ms) => {
 // ─── GET /api/admin/chat-sessions/stats ─────────────────────────────────────
 export const getChatSessionStats = async (req, res) => {
   try {
-    // Use aggregation to compute all stats in one query
-    const now = Date.now();
     const thirtyMinutesMs = 30 * 60 * 1000;
 
+    // A single robust aggregation pipeline for main metrics
     const [result] = await ChatSession.aggregate([
       {
+        $project: {
+          totalMsgs: {
+            $size: {
+              $cond: {
+                if: { $isArray: '$messages' },
+                then: '$messages',
+                else: []
+              }
+            }
+          },
+          createdAtMs: {
+            $cond: {
+              if: { $gt: ['$createdAt', null] },
+              then: { $toLong: '$createdAt' },
+              else: null
+            }
+          },
+          lastModifiedMs: {
+            $cond: {
+              if: { $gt: ['$lastModified', null] },
+              then: { $toLong: '$lastModified' },
+              else: {
+                $cond: {
+                  if: { $gt: ['$createdAt', null] },
+                  then: { $toLong: '$createdAt' },
+                  else: null
+                }
+              }
+            }
+          },
+          guestId: 1,
+          userId: 1
+        }
+      },
+      {
         $addFields: {
-          totalMsgs: { $size: '$messages' },
           durationMs: {
-            $subtract: [
-              { $toLong: '$lastModified' },
-              { $toLong: '$createdAt' }
-            ]
+            $cond: {
+              if: {
+                $and: [
+                  { $ne: ['$lastModifiedMs', null] },
+                  { $ne: ['$createdAtMs', null] }
+                ]
+              },
+              then: { $subtract: ['$lastModifiedMs', '$createdAtMs'] },
+              else: 0
+            }
+          },
+          sessionStatus: {
+            $cond: {
+              if: { $eq: ['$totalMsgs', 0] },
+              then: 'abandoned',
+              else: {
+                $cond: {
+                  if: {
+                    $lt: [
+                      { $subtract: [Date.now(), { $ifNull: ['$lastModifiedMs', Date.now()] }] },
+                      thirtyMinutesMs
+                    ]
+                  },
+                  then: 'active',
+                  else: 'completed'
+                }
+              }
+            }
           }
         }
       },
@@ -47,37 +104,28 @@ export const getChatSessionStats = async (req, res) => {
           totalMessages: { $sum: '$totalMsgs' },
           avgMessages: { $avg: '$totalMsgs' },
           avgDurationMs: { $avg: '$durationMs' },
-          totalGuest: {
-            $sum: {
-              $cond: [{ $ifNull: ['$guestId', false] }, 1, 0]
-            }
-          },
-          totalRegistered: {
-            $sum: {
-              $cond: [{ $ifNull: ['$userId', false] }, 1, 0]
-            }
-          }
+          active: { $sum: { $cond: [{ $eq: ['$sessionStatus', 'active'] }, 1, 0] } },
+          completed: { $sum: { $cond: [{ $eq: ['$sessionStatus', 'completed'] }, 1, 0] } },
+          abandoned: { $sum: { $cond: [{ $eq: ['$sessionStatus', 'abandoned'] }, 1, 0] } },
+          totalGuest: { $sum: { $cond: [{ $ifNull: ['$guestId', false] }, 1, 0] } },
+          totalRegistered: { $sum: { $cond: [{ $ifNull: ['$userId', false] }, 1, 0] } }
         }
       }
     ]);
 
-    // Count status by computing on full collection (lightweight — only lastModified + messages.length)
-    const allSessions = await ChatSession.find({})
-      .select('lastModified messages guestId userId detectedMode')
-      .lean();
+    // Aggregate mode counts separately and quickly
+    const modeResults = await ChatSession.aggregate([
+      {
+        $group: {
+          _id: { $ifNull: ['$detectedMode', 'NORMAL_CHAT'] },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
 
-    let active = 0, completed = 0, abandoned = 0;
     const modeCounts = {};
-
-    for (const s of allSessions) {
-      const msgCount = s.messages?.length || 0;
-      const status = computeStatus(s.lastModified, msgCount);
-      if (status === 'active') active++;
-      else if (status === 'completed') completed++;
-      else abandoned++;
-
-      const mode = s.detectedMode || 'NORMAL_CHAT';
-      modeCounts[mode] = (modeCounts[mode] || 0) + 1;
+    for (const m of modeResults) {
+      modeCounts[m._id] = m.count;
     }
 
     res.status(200).json({
@@ -90,7 +138,11 @@ export const getChatSessionStats = async (req, res) => {
         avgDuration: formatDuration(result?.avgDurationMs || 0),
         totalGuestSessions: result?.totalGuest || 0,
         totalRegisteredSessions: result?.totalRegistered || 0,
-        statusCounts: { active, completed, abandoned },
+        statusCounts: {
+          active: result?.active || 0,
+          completed: result?.completed || 0,
+          abandoned: result?.abandoned || 0
+        },
         modeCounts
       }
     });
