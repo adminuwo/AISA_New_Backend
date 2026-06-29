@@ -112,13 +112,20 @@ export const manualPlanUpgrade = async (req, res) => {
         const plan = await Plan.findOne({ planName: new RegExp(`^${planName}$`, 'i') });
         if (!plan) return res.status(404).json({ success: false, message: `Plan '${planName}' not found.` });
 
+        let calculatedRenewal = expiryDate ? new Date(expiryDate) : null;
+        if (!calculatedRenewal) {
+            calculatedRenewal = new Date();
+            const months = plan.validityMonthly || 1;
+            calculatedRenewal.setMonth(calculatedRenewal.getMonth() + months);
+        }
+
         const subscription = await Subscription.findOneAndUpdate(
             { userId: userId },
             { 
                 planId: plan._id, 
-                renewalDate: expiryDate ? new Date(expiryDate) : undefined,
+                renewalDate: calculatedRenewal,
                 subscriptionStatus: 'active',
-                creditsRemaining: plan.credits
+                creditsRemaining: plan.credits || 0
             },
             { new: true, upsert: true }
         );
@@ -126,7 +133,7 @@ export const manualPlanUpgrade = async (req, res) => {
         // Also update User record for consistency with credit system
         await User.findByIdAndUpdate(userId, { 
             $set: { 
-                credits: plan.credits,
+                credits: plan.credits || 0,
                 founderStatus: plan.planName.toLowerCase().includes('founder')
             } 
         });
