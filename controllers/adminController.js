@@ -105,6 +105,7 @@ export const searchUserByEmail = async (req, res) => {
 export const manualPlanUpgrade = async (req, res) => {
     try {
         const { userId, planName, expiryDate } = req.body;
+        console.log("[manualPlanUpgrade] req.body:", req.body);
         
         // Find the actual plan ID first
         const plan = await Plan.findOne({ planName: new RegExp(`^${planName}$`, 'i') });

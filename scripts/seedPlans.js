@@ -89,7 +89,7 @@ const PLANS = [
     },
     {
         planId: 'Plan_2',
-        planName: ' Startup',
+        planName: 'Startup',
         priceMonthly: 999,
         priceYearly: 9990,
         priceYearlyPerMonth: 832,
