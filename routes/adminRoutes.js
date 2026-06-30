@@ -19,6 +19,7 @@ import {
     getChatSessions,
     getChatSessionDetail
 } from '../controllers/adminChatSessionController.js';
+import { getAnalytics, getErrorDrillDown } from '../controllers/analyticsController.js';
 
 
 const router = express.Router();
@@ -78,5 +79,9 @@ router.post('/parse-legal-doc', verifyToken, isAdmin, upload.single('file'), (re
 router.get('/chat-sessions/stats', verifyToken, isAdmin, getChatSessionStats);
 router.get('/chat-sessions', verifyToken, isAdmin, getChatSessions);
 router.get('/chat-sessions/:sessionId', verifyToken, isAdmin, getChatSessionDetail);
+
+// Analytics
+router.get('/analytics', verifyToken, isAdmin, getAnalytics);
+router.get('/analytics/errors/:mode', verifyToken, isAdmin, getErrorDrillDown);
 
 export default router;
