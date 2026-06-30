@@ -75,8 +75,11 @@ export const getUserPlan = async (userId) => {
         return { planKey: 'founder', ...businessDefaults, imageLimit: 999, carouselLimit: 999, videoLimit: 999 };
     }
 
-    // Fetch active subscription
-    const sub = await Subscription.findOne({ userId, subscriptionStatus: 'active' }).populate('planId').lean();
+    // Fetch active or grace period subscription
+    const sub = await Subscription.findOne({
+        userId,
+        subscriptionStatus: { $in: ['active', 'grace_period'] }
+    }).populate('planId').lean();
 
     if (!sub || !sub.planId) {
         const freeDefaults = await getPlanDefaultsFromDb('Plan_0');
